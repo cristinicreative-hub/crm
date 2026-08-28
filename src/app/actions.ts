@@ -41,43 +41,48 @@ export interface TransactionInput {
 // ----------------------------------------------------
 
 export async function loginAction(formData: FormData) {
-  const email = formData.get('email')?.toString().trim()
-  const password = formData.get('password')?.toString()
+  try {
+    const email = formData.get('email')?.toString().trim()
+    const password = formData.get('password')?.toString()
 
-  if (!email || !password) {
-    return { error: 'Email e password sono obbligatori.' }
+    if (!email || !password) {
+      return { error: 'Email e password sono obbligatori.' }
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { company: true },
+    })
+
+    if (!user) {
+      return { error: 'Credenziali non valide.' }
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+    if (!isPasswordValid) {
+      return { error: 'Credenziali non valide.' }
+    }
+
+    const sessionPayload: UserSession = {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      companyId: user.companyId,
+      companyName: user.company?.name,
+      companyCode: user.company?.code,
+      companyColor: user.company?.color,
+    }
+
+    const token = await createSessionToken(sessionPayload)
+    await setSessionCookie(token)
+
+    revalidatePath('/')
+    return { success: true }
+  } catch (err: any) {
+    console.error('Login error:', err)
+    return { error: 'Errore di connessione al database. Contatta l\'amministratore.' }
   }
-
-  const user = await prisma.user.findUnique({
-    where: { email },
-    include: { company: true },
-  })
-
-  if (!user) {
-    return { error: 'Credenziali non valide.' }
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password)
-  if (!isPasswordValid) {
-    return { error: 'Credenziali non valide.' }
-  }
-
-  const sessionPayload: UserSession = {
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    companyId: user.companyId,
-    companyName: user.company?.name,
-    companyCode: user.company?.code,
-    companyColor: user.company?.color,
-  }
-
-  const token = await createSessionToken(sessionPayload)
-  await setSessionCookie(token)
-
-  revalidatePath('/')
-  return { success: true }
 }
 
 export async function logoutAction() {
