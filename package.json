@@ -11,6 +11,7 @@
     "postinstall": "prisma generate || exit 0"
   },
   "dependencies": {
+    "@next/swc-wasm-nodejs": "^16.3.3",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.10",
@@ -26,7 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^10.9.1",
+    "eslint": "^9.39.5",
     "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
