@@ -1,0 +1,90 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  code         String        @unique
+  color        String        @default("#3b82f6")
+  description  String?
+  customers    Customer[]
+  users        User[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("ADMIN")
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name         String
+  email        String?
+  phone        String?
+  vatNumber    String?
+  address      String?
+  referredBy   String?
+  notes        String?
+  status       String        @default("ATTIVO")
+  attachments  Attachment[]
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  fileName   String
+  fileUrl    String
+  fileSize   Int?
+  fileType   String?
+  createdAt  DateTime @default(now())
+}
+
+model Transaction {
+  id            String                  @id @default(cuid())
+  companyId     String
+  company       Company                 @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  customerId    String?
+  customer      Customer?               @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  type          String
+  category      String?
+  amount        Float
+  description   String
+  date          DateTime                @default(now())
+  paymentMethod String?
+  attachments   TransactionAttachment[]
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+}
+
+model TransactionAttachment {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  fileName      String
+  fileUrl       String
+  fileSize      Int?
+  fileType      String?
+  createdAt     DateTime    @default(now())
+}
