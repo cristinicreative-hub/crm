@@ -83,7 +83,53 @@ export default function TransactionTable({
     }
   }
 
-  // Calculate totals
+  const exportToCSV = () => {
+    if (transactions.length === 0) return
+
+    const headers = [
+      'Data',
+      'Tipo',
+      'Azienda',
+      'Categoria',
+      'Descrizione',
+      'Importo (€)',
+      'Cliente',
+      'Metodo di Pagamento',
+    ]
+
+    const rows = transactions.map((t) => [
+      new Date(t.date).toLocaleDateString('it-IT'),
+      t.type,
+      t.company?.name || '',
+      t.category || '',
+      t.description || '',
+      (t.type === 'USCITA' ? -t.amount : t.amount).toFixed(2).replace('.', ','),
+      t.customer?.name || '',
+      t.paymentMethod || '',
+    ])
+
+    const csvContent =
+      '\uFEFF' +
+      [headers, ...rows]
+        .map((row) =>
+          row
+            .map((field) => `"${String(field).replace(/"/g, '""')}"`)
+            .join(';')
+        )
+        .join('\r\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    const dateStr = new Date().toISOString().split('T')[0]
+    link.setAttribute('download', `movimenti_${dateStr}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const totalIncome = transactions
     .filter((t) => t.type === 'ENTRATA')
     .reduce((sum, t) => sum + t.amount, 0)
@@ -210,6 +256,16 @@ export default function TransactionTable({
               className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-white"
             />
           </div>
+
+          <button
+            onClick={exportToCSV}
+            disabled={transactions.length === 0}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Esporta in CSV"
+          >
+            <Download className="h-4 w-4" />
+            Esporta CSV
+          </button>
 
           <button
             onClick={onAddClick}

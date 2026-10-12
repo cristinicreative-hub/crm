@@ -23,6 +23,10 @@
 # misc
 .DS_Store
 *.pem
+.agents/
+.claude/
+.cursor/
+.devin/
 
 # debug
 npm-debug.log*
@@ -44,3 +48,4 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 /public/uploads
+*.sql
