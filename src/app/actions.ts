@@ -351,7 +351,9 @@ export async function deleteAttachment(attachmentId: string) {
 export async function getTransactions(
   companyIdFilter?: string,
   typeFilter?: string,
-  search?: string
+  search?: string,
+  startDate?: string,
+  endDate?: string
 ) {
   const session = await getSession()
   if (!session) return []
@@ -366,6 +368,16 @@ export async function getTransactions(
 
   if (typeFilter && typeFilter !== 'ALL') {
     whereClause.type = typeFilter
+  }
+
+  if (startDate || endDate) {
+    whereClause.date = {}
+    if (startDate) {
+      whereClause.date.gte = new Date(`${startDate}T00:00:00.000Z`)
+    }
+    if (endDate) {
+      whereClause.date.lte = new Date(`${endDate}T23:59:59.999Z`)
+    }
   }
 
   if (search && search.trim() !== '') {

@@ -57,6 +57,9 @@ interface TransactionTableProps {
   onSearchChange: (q: string) => void
   typeFilter: string
   onTypeFilterChange: (type: string) => void
+  startDate: string
+  endDate: string
+  onDateFilterChange: (start: string, end: string) => void
   loading?: boolean
 }
 
@@ -68,6 +71,9 @@ export default function TransactionTable({
   onSearchChange,
   typeFilter,
   onTypeFilterChange,
+  startDate,
+  endDate,
+  onDateFilterChange,
   loading,
 }: TransactionTableProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -211,69 +217,103 @@ export default function TransactionTable({
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onTypeFilterChange('ALL')}
-            className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
-              typeFilter === 'ALL'
-                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
-            }`}
-          >
-            Tutti i Movimenti ({transactions.length})
-          </button>
-          <button
-            onClick={() => onTypeFilterChange('ENTRATA')}
-            className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
-              typeFilter === 'ENTRATA'
-                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300'
-            }`}
-          >
-            Entrate (+)
-          </button>
-          <button
-            onClick={() => onTypeFilterChange('USCITA')}
-            className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
-              typeFilter === 'USCITA'
-                ? 'bg-red-600 text-white shadow-md shadow-red-500/20'
-                : 'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/50 dark:text-red-300'
-            }`}
-          >
-            Uscite (-)
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cerca per descrizione, categoria..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-            />
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => onTypeFilterChange('ALL')}
+              className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                typeFilter === 'ALL'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+              }`}
+            >
+              Tutti i Movimenti ({transactions.length})
+            </button>
+            <button
+              onClick={() => onTypeFilterChange('ENTRATA')}
+              className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                typeFilter === 'ENTRATA'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300'
+              }`}
+            >
+              Entrate (+)
+            </button>
+            <button
+              onClick={() => onTypeFilterChange('USCITA')}
+              className={`rounded-xl px-3.5 py-2 text-xs font-bold transition ${
+                typeFilter === 'USCITA'
+                  ? 'bg-red-600 text-white shadow-md shadow-red-500/20'
+                  : 'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-950/50 dark:text-red-300'
+              }`}
+            >
+              Uscite (-)
+            </button>
           </div>
 
-          <button
-            onClick={exportToCSV}
-            disabled={transactions.length === 0}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Esporta in CSV"
-          >
-            <Download className="h-4 w-4" />
-            Esporta CSV
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-xs dark:border-slate-800 dark:bg-slate-900">
+              <Calendar className="h-4 w-4 text-slate-400 shrink-0" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Da:</span>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => onDateFilterChange(e.target.value, endDate)}
+                  className="bg-transparent text-slate-900 dark:text-white focus:outline-hidden"
+                />
+              </div>
+              <span className="text-slate-300 dark:text-slate-700">|</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-slate-500 dark:text-slate-400 font-medium">A:</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => onDateFilterChange(startDate, e.target.value)}
+                  className="bg-transparent text-slate-900 dark:text-white focus:outline-hidden"
+                />
+              </div>
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => onDateFilterChange('', '')}
+                  className="ml-1 rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                  title="Azzera filtro date"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
 
-          <button
-            onClick={onAddClick}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition shrink-0"
-          >
-            <Plus className="h-4 w-4" />
-            Nuova Operazione
-          </button>
+            <div className="relative max-w-xs flex-1 min-w-[180px]">
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cerca per descrizione..."
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 shadow-xs focus:border-blue-500 focus:outline-hidden dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+              />
+            </div>
+
+            <button
+              onClick={exportToCSV}
+              disabled={transactions.length === 0}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 transition shrink-0 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Esporta in CSV"
+            >
+              <Download className="h-4 w-4" />
+              Esporta CSV
+            </button>
+
+            <button
+              onClick={onAddClick}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-500/20 hover:bg-blue-700 transition shrink-0"
+            >
+              <Plus className="h-4 w-4" />
+              Nuova Operazione
+            </button>
+          </div>
         </div>
       </div>
 

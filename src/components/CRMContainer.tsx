@@ -40,6 +40,8 @@ export default function CRMContainer({
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [txTypeFilter, setTxTypeFilter] = useState<string>('ALL')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
   const [isPending, startTransition] = useTransition()
 
@@ -54,14 +56,16 @@ export default function CRMContainer({
     tab = activeTab,
     companyId = selectedCompanyId,
     search = searchQuery,
-    typeF = txTypeFilter
+    typeF = txTypeFilter,
+    startD = startDate,
+    endD = endDate
   ) => {
     startTransition(async () => {
       if (tab === 'customers') {
         const updatedCustomers = await getCustomers(companyId, search)
         setCustomers(updatedCustomers)
       } else {
-        const updatedTransactions = await getTransactions(companyId, typeF, search)
+        const updatedTransactions = await getTransactions(companyId, typeF, search, startD, endD)
         setTransactions(updatedTransactions)
       }
     })
@@ -70,22 +74,28 @@ export default function CRMContainer({
   const handleTabChange = (newTab: 'customers' | 'finance') => {
     setActiveTab(newTab)
     setSearchQuery('')
-    reloadData(newTab, selectedCompanyId, '', txTypeFilter)
+    reloadData(newTab, selectedCompanyId, '', txTypeFilter, startDate, endDate)
   }
 
   const handleSelectCompany = (id: string) => {
     setSelectedCompanyId(id)
-    reloadData(activeTab, id, searchQuery, txTypeFilter)
+    reloadData(activeTab, id, searchQuery, txTypeFilter, startDate, endDate)
   }
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query)
-    reloadData(activeTab, selectedCompanyId, query, txTypeFilter)
+    reloadData(activeTab, selectedCompanyId, query, txTypeFilter, startDate, endDate)
   }
 
   const handleTxTypeFilterChange = (type: string) => {
     setTxTypeFilter(type)
-    reloadData(activeTab, selectedCompanyId, searchQuery, type)
+    reloadData(activeTab, selectedCompanyId, searchQuery, type, startDate, endDate)
+  }
+
+  const handleDateFilterChange = (start: string, end: string) => {
+    setStartDate(start)
+    setEndDate(end)
+    reloadData(activeTab, selectedCompanyId, searchQuery, txTypeFilter, start, end)
   }
 
   // Customer Modal handlers
@@ -215,6 +225,9 @@ export default function CRMContainer({
           onSearchChange={handleSearchChange}
           typeFilter={txTypeFilter}
           onTypeFilterChange={handleTxTypeFilterChange}
+          startDate={startDate}
+          endDate={endDate}
+          onDateFilterChange={handleDateFilterChange}
           loading={isPending}
         />
       )}
